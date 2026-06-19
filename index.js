@@ -39,22 +39,24 @@ async function run() {
     const bloodRequestsCollection = database.collection("allBloods");
     const usersCollection = database.collection("user");
 
-    // (1) BLOOD REQUESTED RELATED ALL API ARE HERE----------->>>>>>>>>>.
-    // 
+    // (1) BLOOD REQUESTED RELATED ALL API ARE HERE----------->>>>>>>>>>>>>>>>>>>.
+    // login kora user er single bloodRequests pawar get api ------ GET
     app.get('/api/my/bloodRequests', async(req, res)=>{
       const query = {};
       if(req.query.donorId){
         query.donorId = req.query.donorId;
       }
+      const result = await bloodRequestsCollection.findOne(query);
+      res.send(result)
     })
-    // all bloods requests & all bloobs show korar api
+    // all bloods requests & all bloobs show korar api--------- POST
     app.post('/api/bloodRequests', async (req, res) => {
       const allBloodRequests = req.body;
       const result = await bloodRequestsCollection.insertOne(allBloodRequests);
       res.send(result);
     });
 
-    // user er data edit kore data update korar jonno api
+    // user er data edit kore data update korar jonno api ----- POST
     app.post('/api/user/update', async (req, res) => {
       try {
         // console.log(req.body);
