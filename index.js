@@ -46,11 +46,48 @@ async function run() {
   res.send(result);
 });
 
-    app.post('/api/user/update', async(req, res)=>{
-    const user = req.body;
-    const result = await usersCollection.updateOne(user);
-    res.send(result)
-})
+// user er data edit kore data update korar jonno api
+app.post('/api/user/update', async (req, res) => {
+  try {
+    // console.log(req.body);
+    const { id, name, bloodGroup, district, upazila, image } = req.body;
+
+    
+    const filter = { _id: new ObjectId(id) }; // বা id field
+
+    const updateDoc = {
+      $set: {
+        name,
+        bloodGroup,
+        district,
+        upazila,
+        image,
+        updatedAt: new Date(),
+      },
+    };
+
+    const result = await usersCollection.updateOne(filter, updateDoc);
+
+    if (result.modifiedCount > 0) {
+      return res.send({
+        success: true,
+        message: "User updated successfully",
+      });
+    }
+
+    return res.send({
+      success: false,
+      message: "No changes made or user not found",
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
