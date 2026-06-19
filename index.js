@@ -39,61 +39,69 @@ async function run() {
     const bloodRequestsCollection = database.collection("allBloods");
     const usersCollection = database.collection("user");
 
+    // (1) BLOOD REQUESTED RELATED ALL API ARE HERE----------->>>>>>>>>>.
+    // 
+    app.get('/api/my/bloodRequests', async(req, res)=>{
+      const query = {};
+      if(req.query.donorId){
+        query.donorId = req.query.donorId;
+      }
+    })
     // all bloods requests & all bloobs show korar api
-   app.post('/api/bloodRequests', async (req, res) => {
-  const allBloodRequests = req.body;
-  const result = await bloodRequestsCollection.insertOne(allBloodRequests);
-  res.send(result);
-});
-
-// user er data edit kore data update korar jonno api
-app.post('/api/user/update', async (req, res) => {
-  try {
-    // console.log(req.body);
-    const { id, name, bloodGroup, district, upazila, image } = req.body;
-
-    
-    const filter = { _id: new ObjectId(id) }; // বা id field
-
-    const updateDoc = {
-      $set: {
-        name,
-        bloodGroup,
-        district,
-        upazila,
-        image,
-        updatedAt: new Date(),
-      },
-    };
-
-    const result = await usersCollection.updateOne(filter, updateDoc);
-
-    if (result.modifiedCount > 0) {
-      return res.send({
-        success: true,
-        message: "User updated successfully",
-      });
-    }
-
-    return res.send({
-      success: false,
-      message: "No changes made or user not found",
+    app.post('/api/bloodRequests', async (req, res) => {
+      const allBloodRequests = req.body;
+      const result = await bloodRequestsCollection.insertOne(allBloodRequests);
+      res.send(result);
     });
 
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      success: false,
-      message: "Server error",
+    // user er data edit kore data update korar jonno api
+    app.post('/api/user/update', async (req, res) => {
+      try {
+        // console.log(req.body);
+        const { id, name, bloodGroup, district, upazila, image } = req.body;
+
+
+        const filter = { _id: new ObjectId(id) }; // বা id field
+
+        const updateDoc = {
+          $set: {
+            name,
+            bloodGroup,
+            district,
+            upazila,
+            image,
+            updatedAt: new Date(),
+          },
+        };
+
+        const result = await usersCollection.updateOne(filter, updateDoc);
+
+        if (result.modifiedCount > 0) {
+          return res.send({
+            success: true,
+            message: "User updated successfully",
+          });
+        }
+
+        return res.send({
+          success: false,
+          message: "No changes made or user not found",
+        });
+
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          success: false,
+          message: "Server error",
+        });
+      }
     });
-  }
-});
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   }
-   finally {
+  finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
