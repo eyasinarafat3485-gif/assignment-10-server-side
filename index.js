@@ -41,14 +41,28 @@ async function run() {
 
     // (1) BLOOD REQUESTED RELATED ALL API ARE HERE----------->>>>>>>>>>>>>>>>>>>.
     // login kora user er single bloodRequests pawar get api ------ GET
-    app.get('/api/my/bloodRequests', async(req, res)=>{
-      const query = {};
-      if(req.query.donorId){
-        query.donorId = req.query.donorId;
+    // app.get('/api/my/bloodRequests', async(req, res)=>{
+    //   const query = {};
+    //   if(req.query.donorId){
+    //     query.donorId = req.query.donorId;
+    //   }
+    //   const result = await bloodRequestsCollection.findOne(query);
+    //   res.send(result)
+    // })
+
+    // login kora user er data 
+    app.get('/api/my/bloodRequests', async (req, res) => {
+      const userId = req.query.userId; 
+
+      if (!userId) {
+        return res.status(400).send({ message: "User ID query parameter is required" });
       }
-      const result = await bloodRequestsCollection.findOne(query);
-      res.send(result)
-    })
+
+      const query = { userId: userId }; 
+      const result = await bloodRequestsCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // all bloods requests & all bloobs show korar api--------- POST
     app.post('/api/bloodRequests', async (req, res) => {
       const allBloodRequests = req.body;
