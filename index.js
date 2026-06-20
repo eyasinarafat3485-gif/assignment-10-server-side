@@ -40,27 +40,83 @@ async function run() {
     const usersCollection = database.collection("user");
 
     // (1) BLOOD REQUESTED RELATED ALL API ARE HERE----------->>>>>>>>>>>>>>>>>>>.
-    // login kora user er single bloodRequests pawar get api ------ GET
-    // app.get('/api/my/bloodRequests', async(req, res)=>{
-    //   const query = {};
-    //   if(req.query.donorId){
-    //     query.donorId = req.query.donorId;
-    //   }
-    //   const result = await bloodRequestsCollection.findOne(query);
-    //   res.send(result)
-    // })
+    //  allbloodRequests get korar jonno
+    app.get('/api/allbloodRequests', async (req, res) => {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
 
-    // login kora user er data 
+      const allbloodRequests = await bloodRequestsCollection
+        .find({})
+        .sort({ createdAt: -1 })   // newest first
+        .skip(skip)
+        .limit(limit)
+        .toArray();
+
+      const totalRequests = await bloodRequestsCollection.countDocuments();
+
+      res.json({
+        success: true,
+        requests: allbloodRequests,
+        totalRequests,
+        currentPage: page,
+        totalPages: Math.ceil(totalRequests / limit)
+      });
+    });
+
+
     app.get('/api/my/bloodRequests', async (req, res) => {
-      const userId = req.query.userId; 
+      const userId = req.query.userId;
+
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
 
       if (!userId) {
         return res.status(400).send({ message: "User ID query parameter is required" });
       }
 
-      const query = { userId: userId }; 
-      const result = await bloodRequestsCollection.find(query).toArray();
-      res.send(result);
+      const query = { userId: userId };
+
+      try {
+        // ১. এই ইউজারের মোট কয়টি রিকোয়েস্ট আছে তা কাউন্ট করা (পেজিনেশন ইউআই-এর জন্য জরুরি)
+        const totalRequests = await bloodRequestsCollection.countDocuments(query);
+
+        // ২. নির্দিষ্ট পেজের জন্য মাত্র ৫টি ডেটা লোড করা
+        const requests = await bloodRequestsCollection.find(query)
+          .sort({ createdAt: -1 }) // নতুন রিকোয়েস্টগুলো টেবিলের প্রথমে দেখাবে
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        // ফ্রন্টএন্ডে অবজেক্ট আকারে requests এবং totalRequests পাঠানো
+        res.send({ requests, totalRequests });
+      } catch (error) {
+        res.status(500).send({ message: "Internal server error", error });
+      }
+    });
+
+    app.patch('/api/bloodRequests/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+
+      const updatedDoc = {
+        $set: {
+          recipientName: req.body.recipientName,
+          district: req.body.district,
+          upazila: req.body.upazila,
+          hospitalName: req.body.hospitalName,
+          fullAddress: req.body.fullAddress,
+        }
+      };
+
+      const result = await bloodRequestsCollection.updateOne(filter, updatedDoc);
+
+      if (result.modifiedCount > 0 || result.matchedCount > 0) {
+        res.send({ _id: id, ...req.body });
+      } else {
+        res.status(400).send({ message: "Failed to update" });
+      }
     });
 
     // all bloods requests & all bloobs show korar api--------- POST
