@@ -41,29 +41,53 @@ async function run() {
 
     // (1) BLOOD REQUESTED RELATED ALL API ARE HERE----------->>>>>>>>>>>>>>>>>>>.
     //  allbloodRequests get korar jonno
+    // app.get('/api/allbloodRequests', async (req, res) => {
+    //   const page = parseInt(req.query.page) || 1;
+    //   const limit = parseInt(req.query.limit) || 10;
+    //   const skip = (page - 1) * limit;
+
+    //   const allbloodRequests = await bloodRequestsCollection
+    //     .find({})
+    //     .sort({ createdAt: -1 })   // newest first
+    //     .skip(skip)
+    //     .limit(limit)
+    //     .toArray();
+
+    //   const totalRequests = await bloodRequestsCollection.countDocuments();
+
+    //   res.json({
+    //     success: true,
+    //     requests: allbloodRequests,
+    //     totalRequests,
+    //     currentPage: page,
+    //     totalPages: Math.ceil(totalRequests / limit)
+    //   });
+    // });
+
     app.get('/api/allbloodRequests', async (req, res) => {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
 
-      const allbloodRequests = await bloodRequestsCollection
-        .find({})
-        .sort({ createdAt: -1 })   // newest first
-        .skip(skip)
-        .limit(limit)
-        .toArray();
+  const filter = { status: "Pending" }; // ✅ শুধু Pending request
 
-      const totalRequests = await bloodRequestsCollection.countDocuments();
+  const allbloodRequests = await bloodRequestsCollection
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
 
-      res.json({
-        success: true,
-        requests: allbloodRequests,
-        totalRequests,
-        currentPage: page,
-        totalPages: Math.ceil(totalRequests / limit)
-      });
-    });
+  const totalRequests = await bloodRequestsCollection.countDocuments(filter); // ✅ filter সহ count
 
+  res.json({
+    success: true,
+    requests: allbloodRequests,
+    totalRequests,
+    currentPage: page,
+    totalPages: Math.ceil(totalRequests / limit)
+  });
+});
 
     app.get('/api/my/bloodRequests', async (req, res) => {
       const userId = req.query.userId;
@@ -96,30 +120,73 @@ async function run() {
       }
     });
 
-    app.patch('/api/bloodRequests/:id', async (req, res) => {
+    // req details pawar jonno api 
+    app.get('/api/bloodRequests/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-
-      const updatedDoc = {
-        $set: {
-          recipientName: req.body.recipientName,
-          district: req.body.district,
-          upazila: req.body.upazila,
-          hospitalName: req.body.hospitalName,
-          fullAddress: req.body.fullAddress,
-        }
-      };
-
-      const result = await bloodRequestsCollection.updateOne(filter, updatedDoc);
-
-      if (result.modifiedCount > 0 || result.matchedCount > 0) {
-        res.send({ _id: id, ...req.body });
-      } else {
-        res.status(400).send({ message: "Failed to update" });
+      const query = {
+        _id: new ObjectId(id)
       }
-    });
+      const result = await bloodRequestsCollection.findOne(query);
+      res.send(result);
+    })
+
+    // app.patch('/api/bloodRequests/:id', async (req, res) => {
+    //   const id = req.params.id;
+    //   const filter = { _id: new ObjectId(id) };
+
+    //   const updatedDoc = {
+    //     $set: {
+    //       recipientName: req.body.recipientName,
+    //       district: req.body.district,
+    //       upazila: req.body.upazila,
+    //       hospitalName: req.body.hospitalName,
+    //       fullAddress: req.body.fullAddress,
+    //     }
+    //   };
+
+    //   const result = await bloodRequestsCollection.updateOne(filter, updatedDoc);
+
+    //   if (result.modifiedCount > 0 || result.matchedCount > 0) {
+    //     res.send({ _id: id, ...req.body });
+    //   } else {
+    //     res.status(400).send({ message: "Failed to update" });
+    //   }
+    // });
+
 
     // all bloods requests & all bloobs show korar api--------- POST
+
+
+
+
+
+    // app.patch('/api/bloodRequests/:id', async (req, res) => {
+    //   const id = req.params.id;
+    //   const { status } = req.body;
+
+    //   const filter = { _id: new ObjectId(id) };
+    //   const updateDoc = {
+    //     $set: {
+    //       status: status,
+    //     },
+    //   };
+
+    //   const result = await bloodRequestsCollection.updateOne(filter, updateDoc);
+    //   res.send(result);
+    // });
+
+    app.patch('/api/bloodRequests/:id', async (req, res) => {
+    const id = req.params.id;
+    const updateData = req.body;   
+
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = { $set: updateData };
+
+    await bloodRequestsCollection.updateOne(filter, updateDoc);
+    const updatedDoc = await bloodRequestsCollection.findOne(filter);
+    res.send(updatedDoc);
+});
+
     app.post('/api/bloodRequests', async (req, res) => {
       const allBloodRequests = req.body;
       const result = await bloodRequestsCollection.insertOne(allBloodRequests);
