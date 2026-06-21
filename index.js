@@ -108,6 +108,103 @@ async function run() {
       res.send(result);
     })
 
+    // volunteer public page er all data pawar api--
+    // ✅ Volunteer Public Requests Page এর জন্য নতুন API — সব status + search + pagination support kore
+app.get('/api/volunteer/allRequests', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const { status, search } = req.query;
+
+  const filter = {};
+
+  // status na pathale shob status dekhabe (default = All)
+  if (status && status !== "All") {
+    if (status === "InProgress") {
+      // ✅ DB te "InProgress" ba "In Progress" (space soho) — dutoi match korbe
+      filter.status = { $regex: /^in\s*progress$/i };
+    } else {
+      filter.status = status;
+    }
+  }
+
+  // search thakle recipientName, bloodGroup, district, upazila te match
+  if (search && search.trim()) {
+    const searchRegex = new RegExp(search.trim(), "i");
+    filter.$or = [
+      { recipientName: searchRegex },
+      { bloodGroup: searchRegex },
+      { district: searchRegex },
+      { upazila: searchRegex },
+    ];
+  }
+
+  const requests = await bloodRequestsCollection
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+  const totalRequests = await bloodRequestsCollection.countDocuments(filter);
+
+  res.json({
+    success: true,
+    requests,
+    totalRequests,
+    currentPage: page,
+    totalPages: Math.ceil(totalRequests / limit)
+  });
+});
+
+// admin public all requests pawar jonno api
+// ✅ Admin er "All Blood Donation Request Page" er jonno — shob user er shob status request, full privilege
+app.get('/api/admin/allRequests', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const { status, search } = req.query;
+
+  const filter = {};
+
+  if (status && status !== "All") {
+    if (status === "InProgress") {
+      filter.status = { $regex: /^in\s*progress$/i };
+    } else {
+      filter.status = status;
+    }
+  }
+
+  if (search && search.trim()) {
+    const searchRegex = new RegExp(search.trim(), "i");
+    filter.$or = [
+      { recipientName: searchRegex },
+      { bloodGroup: searchRegex },
+      { district: searchRegex },
+      { upazila: searchRegex },
+    ];
+  }
+
+  const requests = await bloodRequestsCollection
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+  const totalRequests = await bloodRequestsCollection.countDocuments(filter);
+
+  res.json({
+    success: true,
+    requests,
+    totalRequests,
+    currentPage: page,
+    totalPages: Math.ceil(totalRequests / limit)
+  });
+});
+
 
     app.patch('/api/bloodRequests/:id', async (req, res) => {
       const id = req.params.id;
