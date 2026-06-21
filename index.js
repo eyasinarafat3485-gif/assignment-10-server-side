@@ -39,8 +39,7 @@ async function run() {
     const bloodRequestsCollection = database.collection("allBloods");
     const usersCollection = database.collection("user");
 
-    // (1) BLOOD REQUESTED RELATED ALL API ARE HERE----------->>>>>>>>>>>>>>>>>>>.
-    //  allbloodRequests get korar jonno
+    // (1) BLOOD REQUESTED RELATED ALL API ARE HERE----------->>>>>>>>>>>>>>>>>.
 
     // all user er data get api
     app.get('/api/users', async (req, res) => {
