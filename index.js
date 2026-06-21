@@ -108,22 +108,6 @@ async function run() {
       res.send(result);
     })
 
-    // all bloods requests & all bloobs show korar api--------- POST
-    // app.patch('/api/bloodRequests/:id', async (req, res) => {
-    //   const id = req.params.id;
-    //   const { status } = req.body;
-
-    //   const filter = { _id: new ObjectId(id) };
-    //   const updateDoc = {
-    //     $set: {
-    //       status: status,
-    //     },
-    //   };
-
-    //   const result = await bloodRequestsCollection.updateOne(filter, updateDoc);
-    //   res.send(result);
-    // });
-
     app.patch('/api/bloodRequests/:id', async (req, res) => {
       const id = req.params.id;
       const updateData = req.body;
@@ -185,7 +169,7 @@ async function run() {
       }
     });
 
-    // রিকোয়েস্ট ডিলিট করার সিম্পল API
+    // Request delete korar simple API
     app.delete('/api/bloodRequests/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
