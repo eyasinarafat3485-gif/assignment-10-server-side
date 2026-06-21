@@ -44,40 +44,39 @@ async function run() {
 
     // all user er data get api
     app.get('/api/users', async (req, res) => {
-  const users = await usersCollection.find({}).toArray();
-  res.send(users);
-});
+      const users = await usersCollection.find({}).toArray();
+      res.send(users);
+    });
 
-// user er status update kora api
-app.patch('/api/users', async (req, res) => {
-  const { userId, status, role } = req.body;
+    // user er status update kora api
+    app.patch('/api/users', async (req, res) => {
+      const { userId, status, role } = req.body;
 
-  const updateData = {};
+      const updateData = {};
 
-  if (status) {
-    updateData.status = status; 
-    
-    if (status.toLowerCase() === 'blocked') {
-      updateData.isRestricted = true; 
-    } else if (status.toLowerCase() === 'active') {
-      updateData.isRestricted = false; 
-    }
-  }
+      if (status) {
+        updateData.status = status;
 
-  if (role) {
-    updateData.role = role.toLowerCase(); // ডাটাবেজের সাথে মিলানোর জন্য lowercase করা হলো (যেমন: "admin", "volunteer")
-  }
+        if (status.toLowerCase() === 'blocked') {
+          updateData.isRestricted = true;
+        } else if (status.toLowerCase() === 'active') {
+          updateData.isRestricted = false;
+        }
+      }
 
-  updateData.updatedAt = new Date();
+      if (role) {
+        updateData.role = role.toLowerCase(); 
+      }
 
-  // ৩. ডাটাবেজে আপডেট করা
-  const result = await usersCollection.updateOne(
-    { _id: new ObjectId(userId) },
-    { $set: updateData }
-  );
+      updateData.updatedAt = new Date();
 
-  res.send(result);
-});
+      const result = await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: updateData }
+      );
+
+      res.send(result);
+    });
 
     app.get('/api/allbloodRequests', async (req, res) => {
       const page = parseInt(req.query.page) || 1;
@@ -258,7 +257,7 @@ app.patch('/api/users', async (req, res) => {
 
     app.post('/api/bloodRequests', async (req, res) => {
       const allBloodRequests = req.body;
-      const { userId } = allBloodRequests; 
+      const { userId } = allBloodRequests;
 
       if (!userId) {
         return res.status(400).send({ success: false, message: "User ID is required" });
@@ -267,9 +266,9 @@ app.patch('/api/users', async (req, res) => {
       const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
 
       if (user && user.isRestricted) {
-        return res.status(403).send({ 
-          success: false, 
-          message: "Your account is restricted or blocked. You cannot create a blood request." 
+        return res.status(403).send({
+          success: false,
+          message: "Your account is restricted or blocked. You cannot create a blood request."
         });
       }
 
@@ -277,8 +276,6 @@ app.patch('/api/users', async (req, res) => {
       const result = await bloodRequestsCollection.insertOne(allBloodRequests);
       res.send(result);
     });
-
-    
 
     // user er data edit kore data update korar jonno api ----- POST
     app.post('/api/user/update', async (req, res) => {
