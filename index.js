@@ -108,6 +108,7 @@ async function run() {
       res.send(result);
     })
 
+
     app.patch('/api/bloodRequests/:id', async (req, res) => {
       const id = req.params.id;
       const updateData = req.body;
@@ -115,9 +116,13 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const updateDoc = { $set: updateData };
 
-      await bloodRequestsCollection.updateOne(filter, updateDoc);
-      const updatedDoc = await bloodRequestsCollection.findOne(filter);
-      res.send(updatedDoc);
+      try {
+        await bloodRequestsCollection.updateOne(filter, updateDoc);
+        const updatedDoc = await bloodRequestsCollection.findOne(filter);
+        res.send(updatedDoc);
+      } catch (error) {
+        res.status(500).send({ message: "Failed to update donation request", error });
+      }
     });
 
     app.post('/api/bloodRequests', async (req, res) => {
