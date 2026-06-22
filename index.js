@@ -328,6 +328,30 @@ async function run() {
       res.send(result);
     });
 
+  // 🩸 DONOR SEARCH API
+    app.get('/api/donors/search', async (req, res) => {
+      const { bloodGroup, district, upazila } = req.query;
+
+      const filter = { 
+        role: "donor", 
+        status: { $regex: /^active$/i } 
+      };
+
+      if (bloodGroup) filter.bloodGroup = bloodGroup;
+      if (district) filter.district = district;
+      if (upazila) filter.upazila = upazila;
+
+      const donors = await usersCollection
+        .find(filter)
+        .project({ password: 0 }) 
+        .toArray();
+
+      res.json({ 
+        success: true, 
+        data: donors 
+      });
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
