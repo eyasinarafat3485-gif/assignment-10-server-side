@@ -64,11 +64,11 @@ async function run() {
       const userId = session.userId;
       console.log(userId);
 
-     
+
       next();
     }
 
-  
+
 
     // all user er data get api
     app.get('/api/users', async (req, res) => {
@@ -174,7 +174,7 @@ async function run() {
     })
 
     // Volunteer Public Requests Page e all data get api
-    app.get('/api/volunteer/allRequests',  async (req, res) => {
+    app.get('/api/volunteer/allRequests', async (req, res) => {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
@@ -223,7 +223,7 @@ async function run() {
     });
 
     // Admin Public Requests Request Page e all data get api
-    app.get('/api/admin/allRequests',  async (req, res) => {
+    app.get('/api/admin/allRequests', async (req, res) => {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
@@ -362,14 +362,23 @@ async function run() {
     app.get('/api/donors/search', async (req, res) => {
       const { bloodGroup, district, upazila } = req.query;
 
-      const filter = {
-        role: "donor",
-        status: { $regex: /^active$/i }
-      };
+      if (!bloodGroup && !district && !upazila) {
+        return res.json({ success: true, data: [] });
+      }
 
-      if (bloodGroup) filter.bloodGroup = bloodGroup;
-      if (district) filter.district = district;
-      if (upazila) filter.upazila = upazila;
+      const filter = {};
+
+      if (bloodGroup) {
+        filter.bloodGroup = bloodGroup;
+      }
+
+      if (district) {
+        filter.district = { $regex: district, $options: 'i' };
+      }
+
+      if (upazila) {
+        filter.upazila = { $regex: upazila, $options: 'i' };
+      }
 
       const donors = await usersCollection
         .find(filter)
@@ -381,6 +390,7 @@ async function run() {
         data: donors
       });
     });
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
