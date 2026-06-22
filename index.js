@@ -64,34 +64,11 @@ async function run() {
       const userId = session.userId;
       console.log(userId);
 
-      // ✅ REPLACED/UPDATED CODE
-      const userQuery = {
-        _id: new ObjectId(userId) // Ekhane new ObjectId thaktei hobe
-      };
-      const user = await usersCollection.findOne(userQuery);
-      console.log(user);
-      req.user = user;
+     
       next();
     }
 
-    const verifyDonor = async (req, res, next) => {
-      if (req.user?.role !== 'donor') {
-        return res.status(403).send({ message: 'forbidden access' })
-      }
-      next();
-    }
-    const verifyVolunteer = async (req, res, next) => {
-      if (req.user?.role !== 'volunteer') {
-        return res.status(403).send({ message: 'forbidden access' })
-      }
-      next();
-    }
-    const verifyAdmin = async (req, res, next) => {
-      if (req.user?.role !== 'admin') {
-        return res.status(403).send({ message: 'forbidden access' })
-      }
-      next();
-    }
+  
 
     // all user er data get api
     app.get('/api/users', async (req, res) => {
@@ -197,7 +174,7 @@ async function run() {
     })
 
     // Volunteer Public Requests Page e all data get api
-    app.get('/api/volunteer/allRequests', verifyToken, async (req, res) => {
+    app.get('/api/volunteer/allRequests',  async (req, res) => {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
@@ -291,7 +268,7 @@ async function run() {
       });
     });
 
-    app.patch('/api/bloodRequests/:id', logger, verifyToken, async (req, res) => {
+    app.patch('/api/bloodRequests/:id', async (req, res) => {
       const id = req.params.id;
       const updateData = req.body;
 
@@ -330,7 +307,7 @@ async function run() {
     });
 
     // user er data edit kore data update korar jonno api ----- POST
-    app.post('/api/user/update', verifyToken, async (req, res) => {
+    app.post('/api/user/update', async (req, res) => {
       try {
         // console.log(req.body);
         const { id, name, bloodGroup, district, upazila, image } = req.body;
@@ -373,7 +350,7 @@ async function run() {
     });
 
     // Request delete korar simple API
-    app.delete('/api/bloodRequests/:id', verifyToken, async (req, res) => {
+    app.delete('/api/bloodRequests/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
 
