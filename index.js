@@ -19,6 +19,11 @@ app.get('/', (req, res) => {
   res.send('Hello World, Assignment 10 Server is Running!')
 })
 
+const logger = (req, res, next) => {
+  console.log(logger, req.params);
+  next();
+}
+
 const uri = process.env.MONGO_DB_URI;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -38,8 +43,55 @@ async function run() {
     const database = client.db("blood_Donation_db");
     const bloodRequestsCollection = database.collection("allBloods");
     const usersCollection = database.collection("user");
+    const sessionCollection = database.collection("sessions");
 
-    // (1) BLOOD REQUESTED RELATED ALL API ARE HERE----------->>>>>>>>>>>>>>>>>.
+    // verification related -------------->
+    const verifyToken = async (req, res, next) => {
+      const authHeader = req.headers?.authorization;
+      if (!authHeader) {
+        return res.status(401).send({ message: 'Unauthorized access' })
+      }
+
+      const token = authHeader.split(' ')[1]
+      if (!token) {
+        return res.status(401).send({ message: 'Unauthorized access' })
+
+      }
+
+      const query = { token: token }
+      const session = await sessionCollection.findOne(query);
+      console.log(session);
+      const userId = session.userId;
+      console.log(userId);
+
+      // ✅ REPLACED/UPDATED CODE
+      const userQuery = {
+        _id: new ObjectId(userId) // Ekhane new ObjectId thaktei hobe
+      };
+      const user = await usersCollection.findOne(userQuery);
+      console.log(user);
+      req.user = user;
+      next();
+    }
+
+    const verifyDonor = async (req, res, next) => {
+      if (req.user?.role !== 'donor') {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+      next();
+    }
+    const verifyVolunteer = async (req, res, next) => {
+      if (req.user?.role !== 'volunteer') {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+      next();
+    }
+    const verifyAdmin = async (req, res, next) => {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+      next();
+    }
 
     // all user er data get api
     app.get('/api/users', async (req, res) => {
@@ -64,7 +116,7 @@ async function run() {
       }
 
       if (role) {
-        updateData.role = role.toLowerCase(); 
+        updateData.role = role.toLowerCase();
       }
 
       updateData.updatedAt = new Date();
@@ -110,7 +162,8 @@ async function run() {
       const skip = (page - 1) * limit;
 
       if (!userId) {
-        return res.status(400).send({ message: "User ID query parameter is required" });
+        return res.status(401).send({ message: "Unauthorized access" });
+        // return res.status(400).send({ message: "User ID query parameter is required" });
       }
 
       const query = { userId: userId };
@@ -144,7 +197,7 @@ async function run() {
     })
 
     // Volunteer Public Requests Page e all data get api
-    app.get('/api/volunteer/allRequests', async (req, res) => {
+    app.get('/api/volunteer/allRequests', verifyToken, async (req, res) => {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
@@ -193,7 +246,7 @@ async function run() {
     });
 
     // Admin Public Requests Request Page e all data get api
-    app.get('/api/admin/allRequests', async (req, res) => {
+    app.get('/api/admin/allRequests',  async (req, res) => {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
@@ -238,7 +291,7 @@ async function run() {
       });
     });
 
-    app.patch('/api/bloodRequests/:id', async (req, res) => {
+    app.patch('/api/bloodRequests/:id', logger, verifyToken, async (req, res) => {
       const id = req.params.id;
       const updateData = req.body;
 
@@ -277,7 +330,7 @@ async function run() {
     });
 
     // user er data edit kore data update korar jonno api ----- POST
-    app.post('/api/user/update', async (req, res) => {
+    app.post('/api/user/update', verifyToken, async (req, res) => {
       try {
         // console.log(req.body);
         const { id, name, bloodGroup, district, upazila, image } = req.body;
@@ -320,7 +373,7 @@ async function run() {
     });
 
     // Request delete korar simple API
-    app.delete('/api/bloodRequests/:id', async (req, res) => {
+    app.delete('/api/bloodRequests/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
 
@@ -328,13 +381,13 @@ async function run() {
       res.send(result);
     });
 
-  // 🩸 DONOR SEARCH API
+    //  DONOR SEARCH API
     app.get('/api/donors/search', async (req, res) => {
       const { bloodGroup, district, upazila } = req.query;
 
-      const filter = { 
-        role: "donor", 
-        status: { $regex: /^active$/i } 
+      const filter = {
+        role: "donor",
+        status: { $regex: /^active$/i }
       };
 
       if (bloodGroup) filter.bloodGroup = bloodGroup;
@@ -343,12 +396,12 @@ async function run() {
 
       const donors = await usersCollection
         .find(filter)
-        .project({ password: 0 }) 
+        .project({ password: 0 })
         .toArray();
 
-      res.json({ 
-        success: true, 
-        data: donors 
+      res.json({
+        success: true,
+        data: donors
       });
     });
 
