@@ -65,11 +65,8 @@ async function run() {
       const userId = session.userId;
       console.log(userId);
 
-
       next();
     }
-
-
 
     // all user er data get api
     app.get('/api/users', async (req, res) => {
@@ -112,7 +109,7 @@ async function run() {
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
 
-      const filter = { status: "Pending" }; // ✅ শুধু Pending request
+      const filter = { status: "Pending" };
 
       const allbloodRequests = await bloodRequestsCollection
         .find(filter)
@@ -121,12 +118,12 @@ async function run() {
         .limit(limit)
         .toArray();
 
-      const totalRequests = await bloodRequestsCollection.countDocuments(filter); // ✅ filter সহ count
+      const totalRequests = await bloodRequestsCollection.countDocuments(filter); 
 
       res.json({
         success: true,
         requests: allbloodRequests,
-        totalRequests,
+        total: totalRequests,
         currentPage: page,
         totalPages: Math.ceil(totalRequests / limit)
       });
