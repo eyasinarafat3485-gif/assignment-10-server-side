@@ -44,6 +44,7 @@ async function run() {
     const bloodRequestsCollection = database.collection("allBloods");
     const usersCollection = database.collection("user");
     const sessionCollection = database.collection("sessions");
+    const fundingCollection = database.collection("fundings");
 
     // verification related -------------->
     const verifyToken = async (req, res, next) => {
@@ -389,6 +390,31 @@ async function run() {
         success: true,
         data: donors
       });
+    });
+
+
+    // funding related post API
+    app.post("/api/funding", async (req, res) => {
+      const data = req.body;
+      const subsInfo = {
+        ...data,
+        createdAt: new Date()
+      }
+      const result = await fundingCollection.insertOne(subsInfo);
+      res.send(result)
+    })
+
+    // funding related get API
+    app.get('/api/funding', async (req, res) => {
+      try {
+        const result = await fundingCollection
+          .find({})
+          .sort({ createdAt: -1 }) 
+          .toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Failed to fetch fundings", error });
+      }
     });
 
 
