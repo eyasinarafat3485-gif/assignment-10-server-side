@@ -144,17 +144,15 @@ async function run() {
       const query = { userId: userId };
 
       try {
-        // ১. এই ইউজারের মোট কয়টি রিকোয়েস্ট আছে তা কাউন্ট করা (পেজিনেশন ইউআই-এর জন্য জরুরি)
+        
         const totalRequests = await bloodRequestsCollection.countDocuments(query);
 
-        // ২. নির্দিষ্ট পেজের জন্য মাত্র ৫টি ডেটা লোড করা
         const requests = await bloodRequestsCollection.find(query)
-          .sort({ createdAt: -1 }) // নতুন রিকোয়েস্টগুলো টেবিলের প্রথমে দেখাবে
+          .sort({ createdAt: -1 }) 
           .skip(skip)
           .limit(limit)
           .toArray();
 
-        // ফ্রন্টএন্ডে অবজেক্ট আকারে requests এবং totalRequests পাঠানো
         res.send({ requests, totalRequests });
       } catch (error) {
         res.status(500).send({ message: "Internal server error", error });
