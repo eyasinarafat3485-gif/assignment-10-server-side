@@ -3,14 +3,14 @@ dotenv.config()
 import express from 'express'
 import { MongoClient, ObjectId, ServerApiVersion } from 'mongodb'
 import cors from 'cors'
-import { createRemoteJWKSet, jwtVerify } from 'jose-cjs'
+// import { createRemoteJWKSet, jwtVerify } from 'jose-cjs'
 
-const JWKS = createRemoteJWKSet(
-	new URL(`${process.env.CLIENT_URL}/api/auth/jwks`),
-)
+// const JWKS = createRemoteJWKSet(
+// 	new URL(`${process.env.CLIENT_URL}/api/auth/jwks`),
+// )
 
 const app = express()
-const port = process.env.PORT || 8000
+const port = process.env.PORT || 5000
 
 // Middleware
 app.use(cors())
@@ -414,7 +414,7 @@ async function run() {
 		})
 
 		// MongoDB connection check
-		await client.db('admin').command({ ping: 1 })
+		// await client.db('admin').command({ ping: 1 })
 		console.log(
 			'Pinged your deployment. You successfully connected to MongoDB!',
 		)
