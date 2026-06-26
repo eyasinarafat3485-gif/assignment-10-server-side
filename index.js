@@ -71,7 +71,7 @@ async function run() {
 		})
 
 		// Update user status and role
-		app.patch('/api/users', verifyToken, async (req, res) => {
+		app.patch('/api/users',  async (req, res) => {
 			const { userId, status, role } = req.body
 
 			const updateData = {}
@@ -101,9 +101,10 @@ async function run() {
 		})
 
 		// Update user profile
-		app.post('/api/user/update', async (req, res) => {
+		app.post('/api/user/update',  async (req, res) => {
 			try {
 				const { id, name, bloodGroup, district, upazila, image } = req.body
+        console.log(req.body);
 
 				const filter = { _id: new ObjectId(id) }
 				const updateDoc = {
@@ -232,7 +233,7 @@ async function run() {
 		})
 
 		// Get blood request details
-		app.get('/api/bloodRequests/:id', verifyToken, async (req, res) => {
+		app.get('/api/bloodRequests/:id',  async (req, res) => {
 			console.log('Token From jwtVerify', req.decodedEmail) //Token From jwtVerify hyci@mailinator.com
 			const id = req.params.id
 
@@ -358,11 +359,7 @@ async function run() {
 		})
 
 		// Update blood request
-		app.patch(
-			'/api/bloodRequests/:id',
-			logger,
-			verifyToken,
-			async (req, res) => {
+		app.patch('/api/bloodRequests/:id',  async (req, res) => {
 				const id = req.params.id
 				const updateData = req.body
 
@@ -382,7 +379,7 @@ async function run() {
 		)
 
 		// Delete blood request
-		app.delete('/api/bloodRequests/:id', verifyToken, async (req, res) => {
+		app.delete('/api/bloodRequests/:id', async (req, res) => {
 			const id = req.params.id
 			const query = { _id: new ObjectId(id) }
 
@@ -393,7 +390,7 @@ async function run() {
 		// ===== FUNDING ROUTES =====
 
 		// Create funding
-		app.post('/api/funding', async (req, res) => {
+		app.post('/api/funding',  async (req, res) => {
 			const data = req.body
 			const subsInfo = {
 				...data,
@@ -404,7 +401,7 @@ async function run() {
 		})
 
 		// Get all fundings
-		app.get('/api/funding', async (req, res) => {
+		app.get('/api/funding',  async (req, res) => {
 			try {
 				const result = await fundingCollection
 					.find({})
