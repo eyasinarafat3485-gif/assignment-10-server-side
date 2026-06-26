@@ -54,8 +54,12 @@ const client = new MongoClient(uri, {
 	},
 })
 
-async function run() {
-	try {
+// async function run() {
+// 	try {
+client.connect(()=>{
+	console.log('connecting to mongodb');
+}).catch(console.dir)
+
 		const database = client.db('blood_Donation_db')
 		const bloodRequestsCollection = database.collection('allBloods')
 		const usersCollection = database.collection('user')
@@ -415,13 +419,13 @@ async function run() {
 
 		// MongoDB connection check
 		// await client.db('admin').command({ ping: 1 })
-		console.log(
-			'Pinged your deployment. You successfully connected to MongoDB!',
-		)
-	} finally {
-	}
-}
-run().catch(console.dir)
+// 		console.log(
+// 			'Pinged your deployment. You successfully connected to MongoDB!',
+// 		)
+// 	} finally {
+// 	}
+// }
+// run().catch(console.dir)
 
 // Health check route
 app.get('/', (req, res) => {
